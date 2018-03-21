@@ -3,23 +3,14 @@ from masonite.provider import ServiceProvider
 from masonite.packages import create_controller
 from routes import api
 import os
+from entry.commands.EntryInstallCommand import EntryInstallCommand
 
-package_directory = os.path.dirname(os.path.realpath(__file__))
-
-class HeyCommand:
-
-    def execute(self):
-        print('this is the hey command class')
-        create_controller(
-            os.path.join(package_directory, '../entry_snippets/PasswordGrantController.py'),
-            to='app/http/controllers/Entry/Api'
-        )
 
 class ApiProvider(ServiceProvider):
 
     def register(self):
         self.app.bind('ResourceRoutes', api.RESOURCES)
-        self.app.bind('HeyCommand', HeyCommand())
+        self.app.bind('Entry:InstallCommand', EntryInstallCommand())
 
     def boot(self, Response, ResourceRoutes, Route, Request, Headers):
         router = Route
