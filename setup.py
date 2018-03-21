@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name="entry",
+    name="masonite-entry",
     version='0.0.1',
     packages=['entry'],
     install_requires=[

@@ -1,3 +1,5 @@
 venv
+dist
 entry.egg-info
+masonite_entry.egg-info
 **/__pycache__
