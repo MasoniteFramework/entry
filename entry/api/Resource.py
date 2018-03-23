@@ -15,7 +15,6 @@ class Resource:
         self.model.__hidden__ = self.exclude
         if not self.url:
             self.url = '/api/{0}'.format(self.model().__class__.__name__.lower())
-        
 
     def handle(self):
 
