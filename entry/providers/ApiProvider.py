@@ -1,16 +1,25 @@
 """ An ApiProvider Service Provider """
-from masonite.provider import ServiceProvider
-from masonite.packages import create_controller
-from routes import api
 import os
-from entry.commands.EntryInstallCommand import EntryInstallCommand
 
+from entry.commands.InstallCommand import InstallCommand
+from entry.commands.ResourceCommand import ResourceCommand
+from masonite.packages import create_controller
+from masonite.provider import ServiceProvider
+from routes import api
+
+package_directory = os.path.dirname(os.path.realpath(__file__))
 
 class ApiProvider(ServiceProvider):
 
     def register(self):
         self.app.bind('ResourceRoutes', api.RESOURCES)
-        self.app.bind('Entry:InstallCommand', EntryInstallCommand())
+        self.app.bind('InstallCommand', InstallCommand())
+        self.app.bind('ResourceCommand', ResourceCommand())
+        self.app.bind(
+            'Entry_MigrationDirectory',
+            os.path.join(package_directory, '../migrations')
+        )
+
 
     def boot(self, Response, ResourceRoutes, Route, Request, Headers):
         router = Route
