@@ -1,6 +1,7 @@
 ''' A Module Description '''
 from app.User import User
 from masonite.facades.Auth import Auth
+from entry.api.models.OAuthToken import OAuthToken
 
 
 class OAuthPasswordGrantController:
@@ -11,18 +12,22 @@ class OAuthPasswordGrantController:
             'username'), Request.input('password'))
 
         if user:
-            return {'token': user.create_token()}
+            if Request.has('scopes'):
+                scopes = Request.input('scopes')
+            else:
+                scopes = ''
+
+            return {'token': user.create_token(scopes=scopes)}
         else:
             return {'error': 'Incorrect username or password'}
 
     def revoke(self, Request):
-        user = Auth(Request).login(Request.input(
-            'username'), Request.input('password'))
+        if not Request.has('token'):
+            return {'error': 'Token not received'}
 
-        if user:
-            if user.revoke_token():
-                return {'success': 'token revoked'}
-            else:
-                return {'error': 'Could not revoke token'}
+        get_token = OAuthToken.where('token', Request.input('token')).first()
+        if get_token:
+            get_token.delete()
+            return {'success': 'Token was revoked'}
         else:
-            return {'error': 'Incorrect username or password'}
+            return {'error': 'Could not find token'}
