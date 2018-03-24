@@ -8,6 +8,8 @@ class OAuthPasswordGrantController:
     ''' Class Docstring Description '''
 
     def generate(self, Request):
+        if not Request.has('username') or not Request.has('password'):
+            return {'error': 'This API call requires a username and password in the payload.'}
         user = Auth(Request).login(Request.input(
             'username'), Request.input('password'))
 
