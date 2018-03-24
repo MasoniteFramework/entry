@@ -16,7 +16,7 @@ class InstallCommand(Command):
     def handle(self):
         create_controller(
             os.path.join(package_directory,
-                         '../entry_snippets/controllers/PasswordGrantController.py'),
+                         '../entry_snippets/controllers/OAuthPasswordGrantController.py'),
             to='app/http/controllers/Entry/Api'
         )
         append_web_routes(
