@@ -12,7 +12,11 @@ package_directory = os.path.dirname(os.path.realpath(__file__))
 class ApiProvider(ServiceProvider):
 
     def register(self):
-        self.app.bind('ResourceRoutes', api.RESOURCES)
+        try:
+            self.app.bind('ResourceRoutes', api.RESOURCES)
+        except AttributeError:
+            pass
+
         self.app.bind('InstallCommand', InstallCommand())
         self.app.bind('ResourceCommand', ResourceCommand())
         self.app.bind(
