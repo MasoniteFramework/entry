@@ -1,7 +1,7 @@
 import os
 import subprocess
 from cleo import Command
-from masonite.packages import create_controller, append_web_routes
+from masonite.packages import create_controller, append_web_routes, append_api_routes
 
 
 package_directory = os.path.dirname(os.path.realpath(__file__))
@@ -23,4 +23,10 @@ class InstallCommand(Command):
             os.path.join(package_directory,
                          '../entry_snippets/routes/EntryRoutes.py')
         )
+
+        append_api_routes(
+            os.path.join(package_directory,
+                         '../entry_snippets/routes/ResourceRoutes.py')
+        )
+
         subprocess.call(['craft', 'migrate'])
