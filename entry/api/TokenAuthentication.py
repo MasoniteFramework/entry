@@ -1,25 +1,31 @@
-from entry.api.exceptions import ApiNotAuthenticated, NoApiTokenFound
+from entry.api.exceptions import ApiNotAuthenticated, NoApiTokenFound, PermissionScopeDenied
 from urllib.parse import parse_qs
-from masonite.routes import Post
+from masonite.routes import Post, Delete
+from entry.api.models.OAuthToken import OAuthToken
 
 
 class TokenAuthentication:
 
-    authentication_model = None
-    routes = [
-        Post().module('app.http.controllers.Api').route('/oauth/token', 'OAuthPasswordGrant@generate'),
-    ]
+    authentication_model = OAuthToken
     authenticated_methods = ['create', 'read', 'update', 'delete']
+    scopes = ['*']
 
     def authenticate(self):
         if not self.authentication_model:
-            self.authentication_model = self.obj
+            self.authentication_model = self.model
         
         if not self.request.has('token'):
             raise NoApiTokenFound
 
         if not self.authentication_model.where('token', self.request.input('token')).count():
             raise ApiNotAuthenticated
+        
+        # Check correct scopes:
+        if '*' not in self.scopes:
+            scopes = self.authentication_model.where('token', self.request.input('token')).first().scope.split(' ')
+            
+            if not set(self.scopes).issubset(scopes):
+                raise PermissionScopeDenied
         
         # Delete the token input
         if self.request.is_not_get_request():
@@ -34,3 +40,17 @@ class TokenAuthentication:
     def tokens_from_model(self, model):
         self.authentication_model = model
         return self
+    
+
+    @staticmethod
+    def routes():
+        try:
+            return [
+                Post().module('app.http.controllers.Entry.Api').route('/oauth/token', 'OAuthPasswordGrantController@generate'),
+                Delete().module('app.http.controllers.Entry.Api').route('/oauth/token', 'OAuthPasswordGrantController@revoke'),
+            ]
+        except ModuleNotFoundError as e:
+            print("\033[93mWarning: could not find app.http.controllers.Entry.Api - Error {0}".format(e))
+        
+        return []
+

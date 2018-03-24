@@ -1,5 +1,5 @@
 import json
-from entry.api.exceptions import ApiNotAuthenticated, NoApiTokenFound
+from entry.api.exceptions import ApiNotAuthenticated, NoApiTokenFound, PermissionScopeDenied
 
 # TODO: 
 #    - create tokens
@@ -23,10 +23,11 @@ class Resource:
             try:
                 self.authenticate()
             except ApiNotAuthenticated:
-                return json.dumps({'Error': 'Invalid authentication token'})
+                return json.dumps({'error': 'Invalid authentication token'})
             except NoApiTokenFound:
-                return json.dumps({'Error': 'Authentication token not found'})
-
+                return json.dumps({'error': 'Authentication token not found'})
+            except PermissionScopeDenied:
+                return json.dumps({'error': 'Incorrect permission scope'})
         return self.serialize()
     
     def load_request(self, request):

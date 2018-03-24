@@ -5,3 +5,6 @@ class ApiNotAuthenticated(Exception):
 
 class NoApiTokenFound(Exception):
     pass
+
+class PermissionScopeDenied(Exception):
+    pass
