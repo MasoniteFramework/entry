@@ -1,0 +1,4 @@
+orator
+python-dotenv
+pytest
+masonite
