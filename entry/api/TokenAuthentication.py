@@ -26,7 +26,7 @@ class TokenAuthentication:
             
             if not set(self.scopes).issubset(scopes):
                 raise PermissionScopeDenied
-        
+
         # Delete the token input
         if self.request.is_not_get_request():
             build_new_inputs = {}
@@ -53,4 +53,3 @@ class TokenAuthentication:
             print("\033[93mWarning: could not find app.http.controllers.Entry.Api - Error {0}".format(e))
         
         return []
-

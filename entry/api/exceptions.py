@@ -8,3 +8,6 @@ class NoApiTokenFound(Exception):
 
 class PermissionScopeDenied(Exception):
     pass
+
+class RateLimitReached(Exception):
+    pass
