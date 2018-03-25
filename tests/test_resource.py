@@ -68,6 +68,7 @@ REQUEST = Request(WSGI_REQUEST)
 
 class TestResource():
 
+
     def setup_method(self):
         self.request = REQUEST
         self.resource = EntryTestResource() \
@@ -86,6 +87,25 @@ class TestResource():
         response = json.loads(self.resource.load_request(self.request).handle())[0]
         assert response['name'] == 'Test'
 
+    
+    def test_resource_returns_reads_all_and_single(self):
+        # creates a resource
+        self.request.path = '/api/entrytests'
+        self.request.environ['REQUEST_METHOD'] = 'POST'
+        self.request.params = 'name=BOB'
+
+        response = json.loads(
+            self.resource.load_request(self.request).handle())
+        assert response['name'] == 'BOB'
+
+        # read a single resource
+        self.request.path = '/api/entrytests/{0}'.format(response['id'])
+        self.request.environ['REQUEST_METHOD'] = 'GET'
+        response = json.loads(
+            self.resource.load_request(self.request).handle())
+        assert response['name'] == 'BOB'
+
+
     def test_resource_creates_on_post(self):
         self.request.path = '/api/entrytests'
         self.request.environ['REQUEST_METHOD'] = 'POST'
@@ -93,6 +113,7 @@ class TestResource():
 
         response = json.loads(self.resource.load_request(self.request).handle())
         assert response['name'] == 'BOB'
+
 
     def test_resource_updates_on_put(self):
 
@@ -104,13 +125,14 @@ class TestResource():
             self.resource.load_request(self.request).handle())
         
         # Update the record
-        self.request.path = '/api/entrytest/{0}'.format(response['id'])
+        self.request.path = '/api/entrytests/{0}'.format(response['id'])
         self.request.environ['REQUEST_METHOD'] = 'PUT'
         self.request.params = 'name=BOB'
         response = json.loads(
             self.resource.load_request(self.request).handle())
         
         assert response['name'] == 'BOB'
+
 
     def test_resource_deletes_on_delete(self):
         # Create a record
@@ -121,12 +143,13 @@ class TestResource():
             self.resource.load_request(self.request).handle())
         
         # Update the record
-        self.request.path = '/api/entrytest/{0}'.format(response['id'])
+        self.request.path = '/api/entrytests/{0}'.format(response['id'])
         self.request.environ['REQUEST_METHOD'] = 'DELETE'
         response = json.loads(
             self.resource.load_request(self.request).handle())
 
         assert response['name'] == 'BOB'
+
 
     def teardown_method(self):
         EntryTest.where('id', '<', 999999999999).delete()
