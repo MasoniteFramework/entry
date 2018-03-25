@@ -52,7 +52,7 @@ class ApiProvider(ServiceProvider):
                 """
 
                 if route.url in router.url:
-                    data = route.load_request(Request).handle()
+                    data = route.load_request(Request).load_container(self.app).handle()
 
                     if data:
                         self.app.bind('Response', data)
