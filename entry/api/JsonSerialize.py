@@ -13,7 +13,6 @@ class JsonSerialize:
         for item in list(self.model().__dict__):
             if item.startswith('_'):
                 self.model().__dict__.pop(item)
-        
         try:
             if self.request.environ['REQUEST_METHOD'] == 'POST' and 'create' in self.methods:
                 return self.create()
@@ -45,7 +44,6 @@ class JsonSerialize:
             # if POST /api/users
             proxy = self.model()
             for field in self.request.all():
-
                 # If the field is a password, hash it
                 if field == 'password':
                     password = bcrypt.hashpw(
@@ -55,6 +53,7 @@ class JsonSerialize:
                 else:
                     setattr(proxy, field, self.request.input(field))
             proxy.save()
+
             return proxy.to_json()
 
     def _get_relationships(self, model):
