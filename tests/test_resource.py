@@ -142,7 +142,7 @@ class TestResource():
         response = json.loads(
             self.resource.load_request(self.request).handle())
         
-        # Update the record
+        # DELETE the record
         self.request.path = '/api/entrytests/{0}'.format(response['id'])
         self.request.environ['REQUEST_METHOD'] = 'DELETE'
         response = json.loads(
@@ -150,6 +150,25 @@ class TestResource():
 
         assert response['name'] == 'BOB'
 
+    def test_read_only_fields(self):
+        # Create a record
+        self.request.path = '/api/entrytests'
+        self.request.environ['REQUEST_METHOD'] = 'POST'
+        self.request.params = 'name=BOB'
+        response = json.loads(
+            self.resource.load_request(self.request).handle())
+
+        # set the read only field
+        self.resource.read_only_fields = ['name']
+
+        # Update the record
+        self.request.path = '/api/entrytests/{0}'.format(response['id'])
+        self.request.environ['REQUEST_METHOD'] = 'PUT'
+        self.request.params = 'name=CHANGE'
+
+        response = json.loads(
+            self.resource.load_request(self.request).handle())
+        assert response['name'] == 'BOB'
 
     def teardown_method(self):
         EntryTest.where('id', '<', 999999999999).delete()

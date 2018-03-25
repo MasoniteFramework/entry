@@ -20,6 +20,7 @@ class Resource:
     relationships = None
     request = None
     url = None
+    read_only_fields = []
 
     def __init__(self):
         self.model.__hidden__ = self.exclude
@@ -59,6 +60,7 @@ class Resource:
                 return self.serialize(self.read())
 
             if self.request.environ['REQUEST_METHOD'] == 'PUT' and 'update' in self.methods:
+
                 return self.serialize(self.update())
 
             if self.request.environ['REQUEST_METHOD'] == 'DELETE' and 'delete' in self.methods:
@@ -133,7 +135,8 @@ class Resource:
             return {'Error': 'Record Not Found'}
 
         for field in self.request.all():
-            setattr(proxy, field, self.request.input(field))
+            if field not in self.read_only_fields:
+                setattr(proxy, field, self.request.input(field))
         proxy.save()
         proxy = self.model.find(match_url.group(1))
         return proxy
