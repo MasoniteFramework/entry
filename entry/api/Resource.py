@@ -8,9 +8,6 @@ from entry.api.exceptions import (
     RateLimitReached,
 )
 
-# TODO: 
-#    - create tokens
-#        - need to make a helper class which will create tokens
 class Resource:
 
     exclude = []
@@ -20,12 +17,17 @@ class Resource:
     relationships = None
     request = None
     url = None
+    url_prefix = ''
     read_only_fields = []
 
     def __init__(self):
         self.model.__hidden__ = self.exclude
         if not self.url:
             self.url = '/api/{0}'.format(self.model().__class__.__name__.lower())
+        
+        if self.url_prefix:
+            self.url = '{0}{1}'.format(self.url_prefix, self.url)
+
         self.container = None
 
     def handle(self):
@@ -102,7 +104,7 @@ class Resource:
             return proxy
 
     def read(self):
-        matchregex = re.compile(r"^\/\w+\/\w+\/(\d+)")
+        matchregex = re.compile(r'^[\/\w+]+\/(\d+)')
         match_url = matchregex.match(self.request.path)
 
         # Get the plural of the url
@@ -123,7 +125,7 @@ class Resource:
             else:
                 return {'Error': 'Record Not Found'}
 
-        return {'Error': 'Invalid URI: {0}. Did you mean {0}s?'.format(self.url)}
+        return {'Error': 'Invalid URI: {0}'.format(self.request.path)}
 
     def update(self):
         # if PUT /api/user/1
