@@ -34,6 +34,7 @@ class EntryTest(Model):
 class EntryTestResource(Resource, JsonSerialize):
     model = EntryTest
     url = '/api/entrytest'
+    data_wrap = False
 
 
 WSGI_REQUEST = {
@@ -189,6 +190,31 @@ class TestResource():
         response = json.loads(
             self.resource.load_request(self.request).handle())
         assert response['name'] == 'BOB'
+
+        # read all resources
+        self.request.path = '/v1/api/entrytests'
+        self.request.environ['REQUEST_METHOD'] = 'GET'
+        response = json.loads(
+            self.resource.load_request(self.request).handle())
+        assert len(response) == 2
+
+    def test_data_wrap(self):
+        # Create a record
+        self.request.path = '/v1/api/entrytests'
+        self.request.environ['REQUEST_METHOD'] = 'POST'
+        self.request.params = 'name=TEST'
+        response = json.loads(
+            self.resource.load_request(self.request).handle())
+        
+        # set the read only field
+        self.resource.data_wrap = True
+
+        # read a single resource
+        self.request.path = '/api/entrytests/{0}'.format(response['id'])
+        self.request.environ['REQUEST_METHOD'] = 'GET'
+        response = json.loads(
+            self.resource.load_request(self.request).handle())
+        assert response['data']['name'] == 'TEST'
 
     def teardown_method(self):
         EntryTest.where('id', '<', 999999999999).delete()

@@ -19,6 +19,8 @@ class Resource:
     url = None
     url_prefix = ''
     read_only_fields = []
+    data_wrap = True
+
 
     def __init__(self):
         self.model.__hidden__ = self.exclude
@@ -31,7 +33,6 @@ class Resource:
         self.container = None
 
     def handle(self):
-
         # Run authentication if one exists
         if hasattr(self, 'authenticate'):
             try:
