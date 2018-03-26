@@ -170,5 +170,25 @@ class TestResource():
             self.resource.load_request(self.request).handle())
         assert response['name'] == 'BOB'
 
+    def test_url_prefix(self):
+        # Create a record
+        self.request.path = '/api/entrytests'
+        self.request.environ['REQUEST_METHOD'] = 'POST'
+        self.request.params = 'name=BOB'
+        response = json.loads(
+            self.resource.load_request(self.request).handle())
+
+        # set the url_prefix field
+        self.resource = EntryTestResource
+        self.resource.url_prefix = '/v1'
+        self.resource = self.resource()
+
+        # read a single resource
+        self.request.path = '/v1/api/entrytests/{0}'.format(response['id'])
+        self.request.environ['REQUEST_METHOD'] = 'GET'
+        response = json.loads(
+            self.resource.load_request(self.request).handle())
+        assert response['name'] == 'BOB'
+
     def teardown_method(self):
         EntryTest.where('id', '<', 999999999999).delete()
