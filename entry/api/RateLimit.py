@@ -1,7 +1,7 @@
 from entry.api.exceptions import RateLimitReached
 
 class RateLimit:
-    rate_limit = (10, 2, 'seconds')
+    rate_limit = (100, 1, 'minute')
 
     def limit(self):
         cache = self.container.make('Cache')
