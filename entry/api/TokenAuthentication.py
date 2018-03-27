@@ -7,7 +7,6 @@ from entry.api.models.OAuthToken import OAuthToken
 class TokenAuthentication:
 
     authentication_model = OAuthToken
-    authenticated_methods = ['create', 'read', 'update', 'delete']
     scopes = ['*']
 
     def authenticate(self):
