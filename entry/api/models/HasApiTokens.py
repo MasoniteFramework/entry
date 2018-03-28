@@ -6,8 +6,30 @@ class HasApiTokens:
         Helper Class For API Authentication Models
     """
 
+
+    def prevent_scopes(self):
+        pass
+
+
+    def grant_scopes(self):
+        pass
+
+
     def create_token(self, name='default', scopes=''):
         """ Create a new API token and save to model """
+
+        if isinstance(self.grant_scopes(), list):
+            scopes = self.grant_scopes()
+
+        if isinstance(scopes, list):
+            if isinstance(self.prevent_scopes(), list):
+                scopes = set(scopes) - set(self.prevent_scopes())
+            scopes = ' '.join(scopes)
+        else:
+            if isinstance(self.prevent_scopes(), list):
+                scopes = scopes.split(' ')
+                scopes = set(scopes) - set(self.prevent_scopes())
+                scopes = ' '.join(scopes)
 
         generated_token = uuid.uuid4().hex
 
@@ -27,7 +49,8 @@ class HasApiTokens:
             )
 
         return generated_token
-    
+
+
     def get_token(self):
         """ Get current API Token """
         return OAuthToken.where('user_id', self.id).first().token
@@ -49,6 +72,24 @@ class HasApiTokens:
             if scope in scopes:
                 return True
         return False
+    
+    def add_scopes(self, *scopes):
+        get_token = OAuthToken.where('user_id', self.id).first()
+        
+        if get_token:
+            scopes = ' '.join(scopes)
+            get_token.scope += scopes
+            return get_token.save()
+
+        return False
+    
+
+    def set_scopes(self, *scopes):
+        get_token = OAuthToken.where('user_id', self.id).first()
+        get_token.scope = ''
+        get_token.save()
+        return self.add_scopes(scopes)
+
 
     def with_token(self, token):
         """ Set API token for the current user """
