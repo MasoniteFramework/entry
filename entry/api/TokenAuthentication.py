@@ -10,24 +10,32 @@ class TokenAuthentication:
     scopes = ['*']
 
     def authenticate(self):
+
+        # Find which input has the authorization token:
+        if self.request.has('token'):
+            token = self.request.input('token')
+        elif self.request.header('AUTHORIZATION'):
+            token = self.request.header('AUTHORIZATION').replace('Bearer ', '')
+
         if not self.authentication_model:
             self.authentication_model = self.model
-        
-        if not self.request.has('token'):
+
+        # Check if Authentication token exists
+        if not self.request.header('AUTHORIZATION') and not self.request.has('token'):
             raise NoApiTokenFound
 
-        if not self.authentication_model.where('token', self.request.input('token')).count():
+        if not self.authentication_model.where('token', token).count():
             raise ApiNotAuthenticated
         
         # Check correct scopes:
         if '*' not in self.scopes:
-            scopes = self.authentication_model.where('token', self.request.input('token')).first().scope.split(' ')
+            scopes = self.authentication_model.where('token', token).first().scope.split(' ')
             
             if not set(self.scopes).issubset(scopes):
                 raise PermissionScopeDenied
 
         # Delete the token input
-        if self.request.is_not_get_request():
+        if self.request.has('token') and self.request.is_not_get_request():
             build_new_inputs = {}
             for i in self.request.params:
                 build_new_inputs[i] = self.request.params[i]
