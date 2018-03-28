@@ -38,10 +38,13 @@ class Resource:
             try:
                 self.authenticate()
             except ApiNotAuthenticated:
+                self.request.status('401 Unauthorized')
                 return json.dumps({'error': 'Invalid authentication token'})
             except NoApiTokenFound:
+                self.request.status('400 Bad Request')
                 return json.dumps({'error': 'Authentication token not found'})
             except PermissionScopeDenied:
+                self.request.status('401 Unauthorized')
                 return json.dumps({'error': 'Incorrect permission scope'})
 
         # Run rate limiting if one exists
@@ -51,32 +54,40 @@ class Resource:
             except RateLimitReached:
                 return json.dumps({'error': 'Rate limit of {0} calls every {1} {2} reached'.format(self.rate_limit[0], self.rate_limit[1], self.rate_limit[2])})
 
+        self.request.header('Allowed', ', '.join(self._get_http_verbs()), http_prefix=None)
+
         for item in list(self.model().__dict__):
             if item.startswith('_'):
                 self.model().__dict__.pop(item)
 
         try:
             if self.request.environ['REQUEST_METHOD'] == 'POST' and 'create' in self.methods:
+                self.request.status('201 Created')
                 return self.serialize(self.create())
 
             if self.request.environ['REQUEST_METHOD'] == 'GET' and 'read' in self.methods:
+                self.request.status('200 OK')
                 return self.serialize(self.read())
 
             if self.request.environ['REQUEST_METHOD'] == 'PUT' and 'update' in self.methods:
-
+                self.request.status('200 OK')
                 return self.serialize(self.update())
 
             if self.request.environ['REQUEST_METHOD'] == 'DELETE' and 'delete' in self.methods:
+                self.request.status('200 OK')
                 return self.serialize(self.delete())
         except Exception as e:
+            self.request.status('500 Internal Server Error')
             return self.serialize({'error': str(e)})
 
+        self.request.status('405 Method Not Allowed')
         return self.serialize(
             {
                 'Error': 'Invalid URI: {0} {1}. This route does not exist for this endpoint.'.format(
                     self.request.environ['REQUEST_METHOD'], self.request.path)
             }
         )
+
     
     def load_request(self, request):
         self.request = request
@@ -163,3 +174,17 @@ class Resource:
                 attr = getattr(model, relationship)
                 if attr and relationship in self.exclude_relationship_fields:
                     attr.__hidden__ = self.exclude_relationship_fields[relationship]
+
+    def _get_http_verbs(self):
+        verbs = []
+
+        if 'create' in self.methods:
+            verbs.append('POST')
+        if 'read' in self.methods:
+            verbs.append('GET')
+        if 'update' in self.methods:
+            verbs.append('PUT')
+        if 'delete' in self.methods:
+            verbs.append('DELETE')
+        
+        return verbs
