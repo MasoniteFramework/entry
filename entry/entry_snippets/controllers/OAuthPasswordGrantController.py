@@ -7,21 +7,22 @@ from entry.api.models.OAuthToken import OAuthToken
 class OAuthPasswordGrantController:
     ''' Class Docstring Description '''
 
-    def generate(self, Request):
-        if not Request.has('username') or not Request.has('password'):
-            return {'error': 'This API call requires a username and password in the payload.'}
-        user = Auth(Request).login(Request.input(
-            'username'), Request.input('password'))
+def generate(self, Request):
+    if not Request.has('username') or not Request.has('password'):
+        return {'error': 'This API call requires a username and password in the payload.'}
 
-        if user:
-            if Request.has('scopes'):
-                scopes = Request.input('scopes')
-            else:
-                scopes = ''
+    user = Auth(Request).login(Request.input(
+        'username'), Request.input('password'))
 
-            return {'token': user.create_token(scopes=scopes)}
+    if user:
+        if Request.has('scopes'):
+            scopes = Request.input('scopes')
         else:
-            return {'error': 'Incorrect username or password'}
+            scopes = ''
+
+        return {'token': user.create_token(scopes=scopes)}
+    else:
+        return {'error': 'Incorrect username or password'}
 
     def revoke(self, Request):
         if not Request.has('token'):
