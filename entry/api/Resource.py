@@ -52,6 +52,10 @@ class Resource:
             try:
                 self.limit()
             except RateLimitReached:
+                # Set Headers
+                self.request.header('X-RateLimit-Limit', str(self.rate_limit[0]), http_prefix=None)
+                self.request.header('X-RateLimit-Remaining', '0', http_prefix=None)
+                self.request.status('429 Too Many Requests')
                 return json.dumps({'error': 'Rate limit of {0} calls every {1} {2} reached'.format(self.rate_limit[0], self.rate_limit[1], self.rate_limit[2])})
 
         self.request.header('Allowed', ', '.join(self._get_http_verbs()), http_prefix=None)
