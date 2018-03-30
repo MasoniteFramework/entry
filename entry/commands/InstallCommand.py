@@ -14,19 +14,16 @@ class InstallCommand(Command):
     """
 
     def handle(self):
+        
         create_controller(
             os.path.join(package_directory,
                          '../entry_snippets/controllers/OAuthPasswordGrantController.py'),
             to='app/http/controllers/Entry/Api'
         )
+
         append_web_routes(
             os.path.join(package_directory,
                          '../entry_snippets/routes/EntryRoutes.py')
-        )
-
-        append_api_routes(
-            os.path.join(package_directory,
-                         '../entry_snippets/routes/ResourceRoutes.py')
         )
 
         subprocess.call(['craft', 'migrate'])
