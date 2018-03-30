@@ -56,7 +56,7 @@ class TokenAuthentication:
                 Post().module('app.http.controllers.Entry.Api').route('/oauth/token', 'OAuthPasswordGrantController@generate'),
                 Delete().module('app.http.controllers.Entry.Api').route('/oauth/token', 'OAuthPasswordGrantController@revoke'),
             ]
-        except ModuleNotFoundError as e:
+        except ImportError as e:
             print("\033[93mWarning: could not find app.http.controllers.Entry.Api - Error {0}".format(e))
         
         return []
