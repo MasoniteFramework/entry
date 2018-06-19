@@ -33,6 +33,7 @@ class Resource:
         self.container = None
 
     def handle(self):
+        
         # Run authentication if one exists
         if hasattr(self, 'authenticate'):
             try:
@@ -102,9 +103,11 @@ class Resource:
         return self
 
     def create(self):
+        
         if '{0}s'.format(self.url) == self.request.path:
             # if POST /api/users
             proxy = self.model()
+            print('request all: ', self.request.all())
             for field in self.request.all():
                 # If the field is a password, hash it
                 if field == 'password':
