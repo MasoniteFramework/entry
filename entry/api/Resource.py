@@ -6,6 +6,7 @@ from entry.api.exceptions import (
     NoApiTokenFound,
     PermissionScopeDenied,
     RateLimitReached,
+    InvalidToken,
 )
 
 class Resource:
@@ -33,7 +34,6 @@ class Resource:
         self.container = None
 
     def handle(self):
-        
         # Run authentication if one exists
         if hasattr(self, 'authenticate'):
             try:
@@ -47,6 +47,9 @@ class Resource:
             except PermissionScopeDenied:
                 self.request.status('401 Unauthorized')
                 return json.dumps({'error': 'Incorrect permission scope'})
+            except InvalidToken:
+                self.request.status('401 Unauthorized')
+                return json.dumps({'error': 'Invalid token received'})
 
         # Run rate limiting if one exists
         if hasattr(self, 'limit'):
@@ -88,11 +91,10 @@ class Resource:
         self.request.status('405 Method Not Allowed')
         return self.serialize(
             {
-                'Error': 'Invalid URI: {0} {1}. This route does not exist for this endpoint.'.format(
+                'error': 'Invalid URI: {0} {1}. This route does not exist for this endpoint.'.format(
                     self.request.environ['REQUEST_METHOD'], self.request.path)
             }
         )
-
     
     def load_request(self, request):
         self.request = request
@@ -107,7 +109,6 @@ class Resource:
         if '{0}s'.format(self.url) == self.request.path:
             # if POST /api/users
             proxy = self.model()
-            print('request all: ', self.request.all())
             for field in self.request.all():
                 # If the field is a password, hash it
                 if field == 'password':
@@ -142,9 +143,9 @@ class Resource:
                     self._get_relationships(record)
                 return record
             else:
-                return {'Error': 'Record Not Found'}
+                return {'error': 'Record Not Found'}
 
-        return {'Error': 'Invalid URI: {0}'.format(self.request.path)}
+        return {'error': 'Invalid URI: {0}'.format(self.request.path)}
 
     def update(self):
         # if PUT /api/user/1
@@ -153,7 +154,7 @@ class Resource:
 
         proxy = self.model.find(match_url.group(1))
         if not proxy:
-            return {'Error': 'Record Not Found'}
+            return {'error': 'Record Not Found'}
 
         for field in self.request.all():
             if field not in self.read_only_fields:
@@ -172,7 +173,7 @@ class Resource:
             get.delete()
             return get
         else:
-            return {'Error': 'Record Not Found'}
+            return {'error': 'Record Not Found'}
 
     def _get_relationships(self, model):
         # Get relationships

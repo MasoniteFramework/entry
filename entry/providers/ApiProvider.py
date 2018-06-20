@@ -15,10 +15,10 @@ class ApiProvider(ServiceProvider):
         self.app.bind('ResourceRoutes', api.RESOURCES)
         self.app.bind('InstallCommand', InstallCommand())
         self.app.bind('ResourceCommand', ResourceCommand())
-        self.app.bind(
-            'Entry_MigrationDirectory',
-            os.path.join(package_directory, '../migrations')
-        )
+        # self.app.bind(
+        #     'Entry_MigrationDirectory',
+        #     os.path.join(package_directory, '../migrations')
+        # )
 
 
     def boot(self, Response, ResourceRoutes, Route, Request, Headers):

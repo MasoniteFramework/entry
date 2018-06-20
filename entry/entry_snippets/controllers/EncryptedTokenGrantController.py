@@ -1,10 +1,13 @@
 ''' A Module Description '''
-from app.User import User
 from masonite.facades.Auth import Auth
-from entry.api.models.OAuthToken import OAuthToken
+from cryptography.fernet import Fernet
+from masonite.auth import Sign
+import pendulum
+import json
+from entry.helpers import expiration_time
 
 
-class OAuthPasswordGrantController:
+class EncryptedTokenGrantController:
     ''' Class Docstring Description '''
 
     def generate(self, Request):
@@ -13,14 +16,28 @@ class OAuthPasswordGrantController:
 
         user = Auth(Request).login(Request.input(
             'username'), Request.input('password'))
+        
+        if Request.has('scopes'):
+            scopes = Request.input('scopes')
+        else:
+            scopes = ''
 
         if user:
-            if Request.has('scopes'):
-                scopes = Request.input('scopes')
-            else:
-                scopes = ''
+            # create a random string
+            token = Fernet.generate_key().decode('UTF-8')
 
-            return {'token': user.create_token(scopes=scopes)}
+            # get the current time
+            current_time = str(pendulum.now())
+
+            # create a string like: random-string:time
+            # key = '{}--{}'.format(key, current_time)
+            key = {
+                'token': token,
+                'issued': current_time,
+                'scopes': scopes
+            }
+            sign = Sign().sign(json.dumps(key))
+            return {'token': sign}
         else:
             return {'error': 'Incorrect username or password'}
 

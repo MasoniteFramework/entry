@@ -73,8 +73,7 @@ class TestResource():
 
         response = json.loads(
             self.resource.load_request(self.request).handle())
-        
-        print(response)
+            
         assert response['name'] == 'BOB'
 
         # read a single resource

@@ -9,3 +9,6 @@ class PermissionScopeDenied(Exception):
 
 class RateLimitReached(Exception):
     pass
+
+class InvalidToken(Exception):
+    pass
