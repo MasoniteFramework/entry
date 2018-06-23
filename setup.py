@@ -11,6 +11,8 @@ setup(
         'entry.migrations',
         'entry.providers',
     ],
-    install_requires=[],
+    install_requires=[
+        'PyJWT==1.6.4'
+    ],
     include_package_data=True,
 )
