@@ -13,6 +13,7 @@ from config import application
 
 class JWTAuthentication:
     scopes = ['*']
+    expires_in = '5 minutes'
 
     def authenticate(self):
         # Find which input has the authorization token:
@@ -69,7 +70,7 @@ class JWTAuthentication:
     def routes():
         try:
             return [
-                Post().route('/oauth/token', '/entry.entry_snippets.controllers.JWTGrantController@generate'),
+                Post().route('/oauth/token', JWTAuthentication.authenticate),
             ]
         except ImportError as e:
             print("\033[93mWarning: could not find app.http.controllers.Entry.Api - Error {0}".format(e))
