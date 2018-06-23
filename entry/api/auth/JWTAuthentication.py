@@ -1,4 +1,4 @@
-from entry.api.exceptions import ApiNotAuthenticated, NoApiTokenFound, PermissionScopeDenied, InvalidToken
+from entry.api.exceptions import ApiNotAuthenticated, NoApiTokenFound, PermissionScopeDenied, InvalidToken, ExpiredToken
 from urllib.parse import parse_qs
 from masonite.routes import Post, Delete
 from entry.api.models.OAuthToken import OAuthToken
@@ -25,7 +25,7 @@ class JWTAuthentication:
             raise InvalidToken
         
         if not self.check_time(decoded_token):
-            raise ApiNotAuthenticated
+            raise ExpiredToken
 
         # Check correct scopes:
         scopes = decoded_token['scope'].split(' ')
