@@ -6,6 +6,7 @@ from masonite.auth import Sign
 import pendulum
 import json
 from entry.helpers import expiration_time
+from masonite.helpers.routes import get, post
 
 
 class EncryptedGrantController:
@@ -43,7 +44,7 @@ class EncryptedGrantController:
 
         try:
             token = Sign().unsign(request.input('token'))
-        except DecodeError:
+        except:
             return {'error': 'Could not decode token'}
 
 
@@ -54,3 +55,15 @@ class EncryptedGrantController:
         }
 
         return {'token': Sign().sign(json.dumps(payload))}
+    
+    @staticmethod
+    def routes():
+        try:
+            return [
+                get('/encrypt/token', EncryptedGrantController.generate),
+                post('/encrypt/refresh', EncryptedGrantController.refresh),
+            ]
+        except ImportError as e:
+            print("\033[93mWarning: could not find app.http.controllers.Entry.Api - Error {0}".format(e))
+        
+        return []

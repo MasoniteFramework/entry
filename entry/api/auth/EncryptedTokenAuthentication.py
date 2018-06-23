@@ -1,4 +1,4 @@
-from entry.api.exceptions import ApiNotAuthenticated, NoApiTokenFound, PermissionScopeDenied
+from entry.api.exceptions import ApiNotAuthenticated, NoApiTokenFound, PermissionScopeDenied, InvalidToken
 from urllib.parse import parse_qs
 from masonite.routes import Post, Delete
 from entry.api.models.OAuthToken import OAuthToken
@@ -6,6 +6,7 @@ from masonite.auth import Sign
 from entry.helpers import expiration_time
 import pendulum
 import json
+from cryptography.fernet import InvalidToken as InvalidDecryption
 
 
 class EncryptedTokenAuthentication:
@@ -17,7 +18,10 @@ class EncryptedTokenAuthentication:
 
         token = self.get_token()
 
-        unsign_token = json.loads(Sign().unsign(token))
+        try:
+            unsign_token = json.loads(Sign().unsign(token))
+        except InvalidDecryption:
+            raise InvalidToken
 
         if not self.check_time(unsign_token):
             raise ApiNotAuthenticated
@@ -47,15 +51,3 @@ class EncryptedTokenAuthentication:
             return False
         
         return True
-
-    @staticmethod
-    def routes():
-        try:
-            return [
-                Post().module('app.http.controllers.Entry.Api').route('/oauth/token', 'OAuthPasswordGrantController@generate'),
-                Delete().module('app.http.controllers.Entry.Api').route('/oauth/token', 'OAuthPasswordGrantController@revoke'),
-            ]
-        except ImportError as e:
-            print("\033[93mWarning: could not find app.http.controllers.Entry.Api - Error {0}".format(e))
-        
-        return []
