@@ -2,3 +2,4 @@ orator
 python-dotenv
 pytest
 masonite
+coveralls
