@@ -12,7 +12,7 @@ class OAuth2:
         token = self.request.input('token')
         if not token:
             raise NoApiTokenFound
-
+            
         client_token = self.token_model.where('token', token).first()
 
         if not client_token:
@@ -24,7 +24,7 @@ class OAuth2:
             if not set(self.scopes).issubset(scopes):
                 raise PermissionScopeDenied
         
-        if pendulum.instance(client_token.expires_at).is_past():
+        if pendulum.parse(str(client_token.expires_at)).is_past():
             raise ExpiredToken
         
         
