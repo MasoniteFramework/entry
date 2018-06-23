@@ -1,5 +1,6 @@
-from entry.api.exceptions import NoApiTokenFound, InvalidToken, PermissionScopeDenied
+from entry.api.exceptions import NoApiTokenFound, InvalidToken, PermissionScopeDenied, ExpiredToken
 from entry.api.models.Token import Token
+import pendulum
 
 class OAuth2:
     authentication_model = None
@@ -22,5 +23,8 @@ class OAuth2:
         if '*' not in self.scopes:
             if not set(self.scopes).issubset(scopes):
                 raise PermissionScopeDenied
+        
+        if pendulum.instance(client_token.expires_at).is_past():
+            raise ExpiredToken
         
         

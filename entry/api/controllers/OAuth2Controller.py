@@ -1,6 +1,7 @@
 from masonite.auth import Sign
 from masonite.facades import Auth
 from masonite.view import View
+from masonite.helpers.routes import get, post
 import pendulum
 import json
 from entry.api.models.Scope import Scope
@@ -39,8 +40,6 @@ class OAuth2Controller:
                 if db_scope:
                     scopes.append(db_scope)
         
-        print(client)
-        
         return view.render('/entry/views/oauth2', {'scopes': scopes, 'app_name': client.name, 'app_description': client.description, 'redirect_uri': redirect_uri, 'state': state})
     
     def send(self, request: Request):
@@ -51,16 +50,22 @@ class OAuth2Controller:
 
         code = uuid.uuid4().hex
 
+        if request.has('state'):
+            state = request.input('state')
+        else:
+            state = ''
+
         self.__token__.create(
-            user_id = 1,
+            user_id = request.user().id,
             token = "{}".format(uuid.uuid4().hex),
             code = code,
             refresh_token = "{}{}".format(uuid.uuid4().hex, uuid.uuid4().hex),
             expires_at = pendulum.now().add(days=1).to_datetime_string(),
+            refresh_expires_at = pendulum.now().add(days=7).to_datetime_string(),
             scopes = ' '.join(scopes)
         )
 
-        return request.redirect('{0}?code={1}'.format(request.input('redirect_uri'), code))
+        return request.redirect('{0}?code={1}&state={2}'.format(request.input('redirect_uri'), code, state))
 
     def refresh(self, request: Request):
         
@@ -73,17 +78,25 @@ class OAuth2Controller:
         token = self.__token__.where('refresh_token', refresh_token).first()
 
         if token:
+            if pendulum.parse(str(token.refresh_expires_at)).is_past():
+                return {'error': 'Refresh token expired'}
+
             token.token = "{}".format(uuid.uuid4().hex)
+            token.expires_at = pendulum.now().add(days=1).to_datetime_string(),
             token.refresh_token = "{}{}".format(uuid.uuid4().hex, uuid.uuid4().hex)
+            token.refresh_expires_at = pendulum.now().add(days=7).to_datetime_string()
             token.save()
 
             return {
                 "access_token": token.token,
                 "token_type": "Bearer",
-                "expires_in": 604800,
+                "expires_at": token.expires_at[0],
                 "refresh_token": token.refresh_token,
                 "scope": token.scopes
             }
+        
+        return {'error': 'Invalid Token'}
+
     
     def authorize(self, request: Request):
         client_id = request.input('client_id')
@@ -108,10 +121,18 @@ class OAuth2Controller:
         return {
             "access_token": token.token,
             "token_type": "Bearer",
-            "expires_in": 604800,
+            "expires_at": token.expires_at,
             "refresh_token": token.refresh_token,
             "scope": token.scopes
         }
 
     def revoke(self):
         pass
+    
+    @staticmethod
+    def routes(self):
+        return [
+            get('/oauth2/token', OAuth2Controller.send),
+            post('/oauth2/authorize', OAuth2Controller.authorize),
+            post('/oauth2/refresh', OAuth2Controller.refresh),
+        ]

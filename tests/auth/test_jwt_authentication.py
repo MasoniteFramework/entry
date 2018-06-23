@@ -3,33 +3,16 @@
 import os
 import json
 
-from dotenv import find_dotenv, load_dotenv
-from orator import DatabaseManager, Model
 from entry.api.Resource import Resource
-from entry.api.JsonSerialize import JsonSerialize
-from entry.api.JWTAuthentication import JWTAuthentication
-from entry.entry_snippets.controllers.JWTGrantController import JWTGrantController
+from entry.api import JsonSerialize
+from entry.api.auth import JWTAuthentication
+from entry.api.controllers import JWTGrantController
 from masonite.app import App
 from masonite.request import Request
 from masonite.testsuite.TestSuite import generate_wsgi
 
-load_dotenv(find_dotenv())
 
-DATABASES = {
-    'default': {
-        'driver': os.environ.get('DB_DRIVER'),
-        'host': os.environ.get('DB_HOST'),
-        'database': os.environ.get('DB_DATABASE'),
-        'user': os.environ.get('DB_USERNAME'),
-        'password': os.environ.get('DB_PASSWORD'),
-        'prefix': ''
-    }
-}
-
-DB = DatabaseManager(DATABASES)
-Model.set_connection_resolver(DB)
-
-class EntryTest(Model):
+class EntryTest:
     __table__ = 'entry_test'
     __fillable__ = ['name']
     __timestamps__ = False
@@ -37,11 +20,11 @@ class EntryTest(Model):
     def all(self):
         return {'test': 'test'}
 
-class EntryTestResource(Resource, JsonSerialize, JWTAuthentication):
+class EntryTestResource(Resource, JWTAuthentication, JsonSerialize):
     model = EntryTest
     url = '/api/entrytest'
-    scopes = ['user:read']
     data_wrap = False
+    expires_in = '5 minutes'
 
 REQUEST = Request(generate_wsgi())
 

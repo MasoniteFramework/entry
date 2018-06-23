@@ -1,4 +1,4 @@
-from entry.api.exceptions import ApiNotAuthenticated, NoApiTokenFound, PermissionScopeDenied
+from entry.api.exceptions import ApiNotAuthenticated, NoApiTokenFound, PermissionScopeDenied, InvalidToken
 from urllib.parse import parse_qs
 from masonite.routes import Post, Delete
 from entry.api.models.OAuthToken import OAuthToken
@@ -6,25 +6,28 @@ from masonite.auth import Sign
 from entry.helpers import expiration_time
 import pendulum
 import json
+import jwt
+from jwt.exceptions import DecodeError
+from config import application
 
 
-class EncryptedTokenAuthentication:
+class JWTAuthentication:
     scopes = ['*']
-    expires_in = '5 minutes'
 
     def authenticate(self):
         # Find which input has the authorization token:
-
         token = self.get_token()
 
-        unsign_token = json.loads(Sign().unsign(token))
-
-        if not self.check_time(unsign_token):
+        try:
+            decoded_token = jwt.decode(token, application.KEY, algorithms=['HS256'])
+        except DecodeError:
+            raise InvalidToken
+        
+        if not self.check_time(decoded_token):
             raise ApiNotAuthenticated
 
         # Check correct scopes:
-        scopes = unsign_token['scopes'].split(' ')
-
+        scopes = decoded_token['scope'].split(' ')
         if '*' not in self.scopes:
             if not set(self.scopes).issubset(scopes):
                 raise PermissionScopeDenied
@@ -50,40 +53,23 @@ class EncryptedTokenAuthentication:
   
     def check_time(self, unsign_token):
         issued_time = unsign_token['issued']
-        minutes_ago = expiration_time(self.expires_in)
+        minutes_ago = expiration_time(self.expires_in, subtract=True)
 
         expiration = self.expires_in.split(' ')
         expiration_amount = int(expiration[0])
 
-        time_parse = pendulum.parse(issued_time).diff(pendulum.parse(minutes_ago))
+        time_parse = minutes_ago.diff(pendulum.parse(issued_time))
 
-        if expiration[1] in ('minute', 'minutes'):
-            if time_parse.in_minutes() < expiration_amount \
-                and not time_parse.in_seconds() <= 0:
-                
-                return True
-            
+        if pendulum.parse(unsign_token['expires']).is_past():
             return False
         
-        if expiration[1] in ('hour', 'hours'):
-            if time_parse.in_hours() < expiration_amount \
-                and not time_parse.in_minutes() <= 0 \
-                and not time_parse.in_seconds() <= 0:
-                return True
-            
-            return False
+        return True
         
-        return False
-        
-
-    
-
     @staticmethod
     def routes():
         try:
             return [
-                Post().module('app.http.controllers.Entry.Api').route('/oauth/token', 'OAuthPasswordGrantController@generate'),
-                Delete().module('app.http.controllers.Entry.Api').route('/oauth/token', 'OAuthPasswordGrantController@revoke'),
+                Post().route('/oauth/token', '/entry.entry_snippets.controllers.JWTGrantController@generate'),
             ]
         except ImportError as e:
             print("\033[93mWarning: could not find app.http.controllers.Entry.Api - Error {0}".format(e))

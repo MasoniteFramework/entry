@@ -12,3 +12,8 @@ class RateLimitReached(Exception):
 
 class InvalidToken(Exception):
     pass
+
+class ExpiredToken(Exception):
+    pass
+
+

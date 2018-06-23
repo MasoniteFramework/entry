@@ -7,6 +7,7 @@ from entry.api.exceptions import (
     PermissionScopeDenied,
     RateLimitReached,
     InvalidToken,
+    ExpiredToken,
 )
 
 class Resource:
@@ -44,12 +45,16 @@ class Resource:
             except NoApiTokenFound:
                 self.request.status('400 Bad Request')
                 return json.dumps({'error': 'Authentication token not found'})
+            except ExpiredToken:
+                self.request.status('400 Bad Request')
+                return json.dumps({'error': 'Authentication token has expired'})
             except PermissionScopeDenied:
                 self.request.status('401 Unauthorized')
                 return json.dumps({'error': 'Incorrect permission scope'})
             except InvalidToken:
                 self.request.status('401 Unauthorized')
                 return json.dumps({'error': 'Invalid token received'})
+
 
         # Run rate limiting if one exists
         if hasattr(self, 'limit'):

@@ -3,6 +3,7 @@ from masonite.request import Request
 from masonite.app import App
 from masonite.testsuite.TestSuite import generate_wsgi
 from masonite.view import View
+import pendulum
 
 class MockApplication:
     KEY = 'NCTpkICMlTXie5te9nJniMj9aVbPM6lsjeq5iDZ0dqY='
@@ -24,6 +25,7 @@ class MockApplicationModel:
 class MockTokenModel:
 
     scopes = ['user:read']
+    refresh_expires_at = pendulum.now().add(minutes=5)
 
     def where(self, column, value):
         setattr(self, column, value)
@@ -36,6 +38,12 @@ class MockTokenModel:
         return self
 
     def save(self):
+        return self
+
+class MockRequstWithUser:
+
+    def user(self):
+        self.id = 1
         return self
 
 class TestController:
@@ -59,6 +67,8 @@ class TestController:
         self.request.request_variables = {
             'redirect_uri': 'http://test.com' 
         }
+
+        self.request.extend(MockRequstWithUser)
 
         assert self.controller().send(self.request)
         assert self.request.redirect_url.startswith('http://test.com?code=')
