@@ -51,7 +51,7 @@ class OAuth2Controller:
 
         code = uuid.uuid4().hex
 
-        Token.create(
+        self.__token__.create(
             user_id = 1,
             token = "{}".format(uuid.uuid4().hex),
             code = code,
@@ -60,11 +60,30 @@ class OAuth2Controller:
             scopes = ' '.join(scopes)
         )
 
-
         return request.redirect('{0}?code={1}'.format(request.input('redirect_uri'), code))
 
-    def refresh(self):
-        pass
+    def refresh(self, request: Request):
+        
+        grant_type = request.input('grant_type')
+        refresh_token = request.input('refresh_token')
+
+        if grant_type != 'refresh_token' or not refresh_token:
+            return {'error': "Invalid refresh token or grant type given."}
+        
+        token = self.__token__.where('refresh_token', refresh_token).first()
+
+        if token:
+            token.token = "{}".format(uuid.uuid4().hex)
+            token.refresh_token = "{}{}".format(uuid.uuid4().hex, uuid.uuid4().hex)
+            token.save()
+
+            return {
+                "access_token": token.token,
+                "token_type": "Bearer",
+                "expires_in": 604800,
+                "refresh_token": token.refresh_token,
+                "scope": token.scopes
+            }
     
     def authorize(self, request: Request):
         client_id = request.input('client_id')
@@ -73,12 +92,12 @@ class OAuth2Controller:
         code = request.input('code')
         redirect_uri = request.input('redirect_uri')
 
-        client = Application.where('client_id', client_id).first()
+        client = self.__application__.where('client_id', client_id).first()
 
         if client.client_secret != client_secret:
             return {'error': 'client secret does not match'}
         
-        token = Token.where('code', code).first()
+        token = self.__token__.where('code', code).first()
 
         if not token:
             return {'error': 'Token does not exist'}
@@ -93,10 +112,6 @@ class OAuth2Controller:
             "refresh_token": token.refresh_token,
             "scope": token.scopes
         }
-
-    def token(self):
-        """ Exchange the authorization code an access token """
-        pass
 
     def revoke(self):
         pass
