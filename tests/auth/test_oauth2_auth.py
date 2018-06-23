@@ -6,7 +6,7 @@ import json
 from entry.api.Resource import Resource
 from entry.api import JsonSerialize
 from entry.api.auth import OAuth2
-from entry.api.exceptions import NoApiTokenFound, ExpiredToken
+from entry.api.exceptions import NoApiTokenFound, ExpiredToken, PermissionScopeDenied
 from entry.api.controllers import JWTGrantController
 from masonite.app import App
 from masonite.request import Request
@@ -51,10 +51,10 @@ class TestEncryptedAuthentication:
         self.auth = OAuth2()
         self.auth.token_model = TokenModel()
 
-    def test_auth_throws_error_on_no_token(self):
+    def test_auth_throws_no_api_token_error(self):
         self.auth.request = self.request
         with pytest.raises(NoApiTokenFound):
-            assert self.auth.authenticate()['error']
+            assert self.auth.authenticate()
     
     def test_auth_throws_error_on_no_token(self):
         self.request.request_variables = {'token': 'token'}
@@ -68,7 +68,12 @@ class TestEncryptedAuthentication:
 
         with pytest.raises(ExpiredToken):
             assert self.auth.authenticate()
-    
 
-    
-    
+    def test_auth_exception_incorrect_permission_scope(self):
+        self.request.request_variables = {'token': 'test-token', 'scope': 'user:read'}
+        self.auth.request = self.request
+        self.auth.scopes = 'user:post'
+
+        with pytest.raises(PermissionScopeDenied):
+            assert self.auth.authenticate()
+        

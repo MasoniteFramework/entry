@@ -12,7 +12,7 @@ class OAuth2:
         token = self.request.input('token')
         if not token:
             raise NoApiTokenFound
-            
+
         client_token = self.token_model.where('token', token).first()
 
         if not client_token:
@@ -20,6 +20,7 @@ class OAuth2:
         
         # Check correct scopes:
         scopes = client_token.scopes.split(' ')
+
         if '*' not in self.scopes:
             if not set(self.scopes).issubset(scopes):
                 raise PermissionScopeDenied
