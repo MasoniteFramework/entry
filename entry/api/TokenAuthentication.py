@@ -37,8 +37,8 @@ class TokenAuthentication:
         # Delete the token input
         if self.request.has('token') and self.request.is_not_get_request():
             build_new_inputs = {}
-            for i in self.request.params:
-                build_new_inputs[i] = self.request.params[i]
+            for i in self.request.request_variables:
+                build_new_inputs[i] = self.request.request_variables[i]
             
             build_new_inputs.pop('token')
             self.request.params = build_new_inputs

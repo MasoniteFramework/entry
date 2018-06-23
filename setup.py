@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="masonite-entry",
-    version='0.1.4',
+    version='1.0.7',
     packages=[
         'entry',
         'entry.api',
@@ -11,8 +11,6 @@ setup(
         'entry.migrations',
         'entry.providers',
     ],
-    install_requires=[
-        'masonite>=1.5,<= 1.5.99',
-    ],
+    install_requires=[],
     include_package_data=True,
 )

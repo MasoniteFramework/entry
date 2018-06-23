@@ -3,6 +3,7 @@ import os
 
 from entry.commands.InstallCommand import InstallCommand
 from entry.commands.ResourceCommand import ResourceCommand
+from entry.commands.PublishCommand import PublishCommand
 from masonite.packages import create_controller
 from masonite.provider import ServiceProvider
 from routes import api
@@ -15,10 +16,14 @@ class ApiProvider(ServiceProvider):
         self.app.bind('ResourceRoutes', api.RESOURCES)
         self.app.bind('InstallCommand', InstallCommand())
         self.app.bind('ResourceCommand', ResourceCommand())
-        self.app.bind(
-            'Entry_MigrationDirectory',
-            os.path.join(package_directory, '../migrations')
-        )
+        self.app.bind('PublishCommand', PublishCommand())
+        self.app.make('RouteMiddleware').update({
+            'jwt': 'app.http.middleware.JWTMiddleware.JWTMiddleware'
+        })
+        # self.app.bind(
+        #     'Entry_MigrationDirectory',
+        #     os.path.join(package_directory, '../migrations')
+        # )
 
 
     def boot(self, Response, ResourceRoutes, Route, Request, Headers):
