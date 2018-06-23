@@ -21,6 +21,7 @@ class MockAuth:
 
     __auth__ = 'email'
     password = '$2b$12$zWTCn.SgvljX74yv.krMZeZOkx73rh.m5mksgq3QQuI/xjize7.L2'
+    email = 'test@email.com'
 
     def where(self, column, column_to):
         # print('self': self)

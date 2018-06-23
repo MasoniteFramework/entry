@@ -25,5 +25,3 @@ class InstallCommand(Command):
             os.path.join(package_directory,
                          '../entry_snippets/routes/EntryRoutes.py')
         )
-
-        subprocess.call(['craft', 'migrate'])

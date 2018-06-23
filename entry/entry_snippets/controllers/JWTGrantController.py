@@ -38,3 +38,13 @@ class JWTGrantController:
             return {'token': encoded}
         else:
             return {'error': 'Incorrect username or password'}
+    
+    def refresh(self):
+        payload = {
+            'issued': current_time,
+            'scopes': scopes,
+            'expires': str(pendulum.now().add(minutes=5))
+        }
+
+        encoded = jwt.encode(payload, application.KEY, algorithm='HS256').decode('UTF-8')
+        return {'token': encoded}

@@ -15,6 +15,9 @@ class ApiProvider(ServiceProvider):
         self.app.bind('ResourceRoutes', api.RESOURCES)
         self.app.bind('InstallCommand', InstallCommand())
         self.app.bind('ResourceCommand', ResourceCommand())
+        self.app.make('RouteMiddleware').update({
+            'jwt': 'app.http.middleware.JWTMiddleware.JWTMiddleware'
+        })
         # self.app.bind(
         #     'Entry_MigrationDirectory',
         #     os.path.join(package_directory, '../migrations')

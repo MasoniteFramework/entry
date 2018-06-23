@@ -1,0 +1,75 @@
+{% extends 'nav/base.html' %} 
+
+{% block content %}
+<div class="container" style="margin-top: 40px">
+    <div class="row">
+        <div class="col-xs-8 col-xs-offset-2">
+            <div class="panel panel-default">
+                <div class="panel-heading">Your Application</div>
+                <div class="panel-body">
+                    <h1>{{ app_name }}</h1>
+                    <div class="text-center">
+                        <img src="https://camo.githubusercontent.com/2030bee2e67bc3b6d425bd09205fd2f9fdd0a342/68747470733a2f2f692e696d6775722e636f6d2f724558636f4d6e2e706e67"
+                            style="width: 50%">
+                    </div>
+                    <h2>
+                        {{ app_description }}
+                    </h2>
+                    <hr>
+                    <h3>
+                        This application is requesting scopes:
+                    </h3>
+                    <hr>
+                    <form action="/oauth2/send" method="GET">
+                        <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
+                        <input type="hidden" name="state" value="{{ state }}"> {% for scope in scopes %}
+                        <div class="row">
+                            <div class="col-xs-10">
+                                <h3>
+                                    {{ scope.name }}
+                                </h3>
+                                <div class="text-help">
+                                    {{ scope.description }}
+                                </div>
+                            </div>
+                            <div class="col-xs-2">
+                                <h3>
+                                    <input type="hidden" scope="{{ scope.name }}" value="{{ scope.name }}">
+                                    <button type="button" scope="{{ scope.name }}" class="btn btn-danger">Revoke</button>
+                                </h3>
+                            </div>
+                        </div>
+                        <hr> {% endfor %}
+                        <div class="row text-center">
+                            <div class="col-xs-12">
+                                <button type="submit" class="btn btn-success">
+                                    Authorize
+                            </div>
+                        </div>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    crossorigin="anonymous"></script>
+<script>
+    $('button[scope]').on('click', function () {
+        if ($(this).text() == 'Grant') {
+            $(this).text('Revoke')
+            $(this).removeClass('btn-success').addClass('btn-danger')
+            let input = $(this).attr('scope')
+            console.log(input)
+            $("input[scope='" + input + "']").removeAttr('name')
+        } else {
+            $(this).text('Grant')
+            $(this).removeClass('btn-danger').addClass('btn-success')
+            let input = $(this).attr('scope')
+            $("input[scope='" + input + "']").attr('name', 'scope-' + input)
+        }
+    })
+    console.log('ready')
+</script> {% endblock %}
