@@ -20,10 +20,10 @@ class ApiProvider(ServiceProvider):
         # self.app.make('RouteMiddleware').update({
         #     'jwt': 'entry.api.middleware.JWTMiddleware'
         # })
-        # self.app.bind(
-        #     'Entry_MigrationDirectory',
-        #     os.path.join(package_directory, '../migrations')
-        # )
+        self.app.bind(
+            'Entry_MigrationDirectory',
+            os.path.join(package_directory, '../migrations')
+        )
 
 
     def boot(self, Response, ResourceRoutes, Route, Request, Headers):

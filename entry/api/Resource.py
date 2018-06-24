@@ -90,8 +90,8 @@ class Resource:
                 self.request.status('200 OK')
                 return self.serialize(self.delete())
         except Exception as e:
-            self.request.status('500 Internal Server Error')
-            return self.serialize({'error': str(e)})
+            self.request.status('400 Bad Request')
+            return self.serialize(self._exception_message(e))
 
         self.request.status('405 Method Not Allowed')
         return self.serialize(
@@ -110,10 +110,13 @@ class Resource:
         return self
 
     def create(self):
+        self._remove_inputs()
         
         if '{0}s'.format(self.url) == self.request.path:
+            
             # if POST /api/users
             proxy = self.model()
+           
             for field in self.request.all():
                 # If the field is a password, hash it
                 if field == 'password':
@@ -124,11 +127,13 @@ class Resource:
                     setattr(proxy, field, password)
                 else:
                     setattr(proxy, field, self.request.input(field))
+            
             proxy.save()
 
             return proxy
 
     def read(self):
+        self._remove_inputs()
         matchregex = re.compile(r'^[\/\w+]+\/(\d+)')
         match_url = matchregex.match(self.request.path)
 
@@ -153,6 +158,7 @@ class Resource:
         return {'error': 'Invalid URI: {0}'.format(self.request.path)}
 
     def update(self):
+        self._remove_inputs()
         # if PUT /api/user/1
         matchregex = re.compile(r"^\/\w+\/\w+\/(\d+)")
         match_url = matchregex.match(self.request.path)
@@ -169,6 +175,7 @@ class Resource:
         return proxy
 
     def delete(self):
+        self._remove_inputs()
         # if DELETE /api/user/1
         matchregex = re.compile(r"^\/\w+\/\w+\/(\d+)")
         match_url = matchregex.match(self.request.path)
@@ -201,3 +208,10 @@ class Resource:
             verbs.append('DELETE')
         
         return verbs
+
+    def _remove_inputs(self):
+        if 'token' in self.request.request_variables:
+            del self.request.request_variables['token']
+
+    def _exception_message(self, e):
+        return {'error': str(e)}

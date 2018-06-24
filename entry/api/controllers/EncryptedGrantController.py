@@ -25,7 +25,7 @@ class EncryptedGrantController:
         if user:
             # user is authenticated
             if request.has('scope'):
-                scopes = request.input('scopes')
+                scopes = request.input('scope')
             else:
                 scopes = ''
 
@@ -37,6 +37,9 @@ class EncryptedGrantController:
             }
 
             return {'token': Sign().sign(json.dumps(payload))}
+
+        request.status('401 Unauthorized')
+        return {'error': 'Username or password do not match'}
 
     def refresh(self, request: Request):
         if not request.input('token'):

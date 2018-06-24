@@ -28,6 +28,7 @@ class EncryptedTokenAuthentication:
 
         # Check correct scopes:
         scopes = unsign_token['scope'].split(' ')
+        print(scopes)
 
         if '*' not in self.scopes:
             if not set(self.scopes).issubset(scopes):

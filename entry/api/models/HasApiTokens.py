@@ -1,5 +1,5 @@
 import uuid
-from entry.api.models.OAuthToken import OAuthToken
+from entry.api.models.Token import Token
 
 class HasApiTokens:
     """
@@ -33,7 +33,7 @@ class HasApiTokens:
 
         generated_token = uuid.uuid4().hex
 
-        user_by_token = OAuthToken.where('user_id', self.id).first()
+        user_by_token = Token.where('user_id', self.id).first()
 
         if user_by_token:
             # update the token
@@ -41,7 +41,7 @@ class HasApiTokens:
             user_by_token.scope = scopes
             user_by_token.save()
         else:
-            OAuthToken.create(
+            Token.create(
                 user_id = self.id,
                 name = name,
                 scope = scopes,
@@ -53,19 +53,19 @@ class HasApiTokens:
 
     def get_token(self):
         """ Get current API Token """
-        return OAuthToken.where('user_id', self.id).first().token
+        return Token.where('user_id', self.id).first().token
 
 
     def has_token(self):
         """ Check if user has an API token """
 
-        if OAuthToken.where('user_id', self.id).first():
+        if Token.where('user_id', self.id).first():
             return True
         
         return False
     
     def has_scope(self, scope):
-        get_token = OAuthToken.where('user_id', self.id).first()
+        get_token = Token.where('user_id', self.id).first()
         
         if get_token:
             scopes = get_token.scope.split(' ')
@@ -74,7 +74,7 @@ class HasApiTokens:
         return False
     
     def add_scopes(self, *scopes):
-        get_token = OAuthToken.where('user_id', self.id).first()
+        get_token = Token.where('user_id', self.id).first()
         
         if get_token:
             scopes = ' '.join(scopes)
@@ -85,7 +85,7 @@ class HasApiTokens:
     
 
     def set_scopes(self, *scopes):
-        get_token = OAuthToken.where('user_id', self.id).first()
+        get_token = Token.where('user_id', self.id).first()
         get_token.scope = ''
         get_token.save()
         return self.add_scopes(scopes)
@@ -97,7 +97,7 @@ class HasApiTokens:
         return self
     
     def revoke_token(self):
-        get_token = OAuthToken.where('user_id', self.id).first()
+        get_token = Token.where('user_id', self.id).first()
         if get_token:
             return get_token.delete()
         
